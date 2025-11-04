@@ -1,0 +1,30 @@
+services:
+  # Base de datos MongoDB
+  mongodb:
+    image: mongo:latest
+    container_name: eventos_db
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_DATABASE: eventos_db
+    volumes:
+      - mongodb_data:/data/db
+
+  # Backend Node.js
+  backend:
+    build: ./backend
+    container_name: eventos_backend
+    ports:
+      - "5000:5000"
+    environment:
+      - NODE_ENV=development
+      - MONGODB_URI=mongodb://mongodb:27017/eventos_db
+    volumes:
+      - ./backend:/app
+      - /app/node_modules
+    depends_on:
+      - mongodb
+    command: npm run dev
+
+volumes:
+  mongodb_data:

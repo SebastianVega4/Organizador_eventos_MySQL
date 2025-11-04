@@ -1,0 +1,27 @@
+# === GENERAL ===
+.DS_Store
+.env
+.env.*
+.vscode/
+.idea/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# === FRONTEND (React) ===
+frontend/node_modules/
+frontend/build/
+frontend/.pnp
+frontend/.pnp.js
+frontend/coverage/
+
+# === BACKEND (Express) ===
+backend/node_modules/
+backend/dist/
+backend/logs/
+backend/tmp/
+
+# === DOCKER ===
+*.pid
+*.seed
+*.pid.lock
