@@ -1,0 +1,102 @@
+# Este archivo reemplaza a tu docker-compose.yml
+# Inícialo con: docker-compose -f docker-compose.advanced.yml up --build
+
+services:
+  # --- SERVICIOS DE MONGODB (REPLICA SET) ---
+  mongo-primary:
+    image: mongo:latest
+    container_name: mongo_primary
+    networks:
+      - eventos_network
+    ports:
+      - "27017:27017" # Puerto del Primary
+    volumes:
+      - mongodb_data_primary:/data/db
+    command: mongod --replSet rs0 --bind_ip localhost,mongo-primary
+
+  mongo-secondary-1:
+    image: mongo:latest
+    container_name: mongo_secondary_1
+    networks:
+      - eventos_network
+    ports:
+      - "27018:27017" # Puerto del Secondary 1
+    volumes:
+      - mongodb_data_s1:/data/db
+    command: mongod --replSet rs0 --bind_ip localhost,mongo-secondary-1
+
+  mongo-secondary-2:
+    image: mongo:latest
+    container_name: mongo_secondary_2
+    networks:
+      - eventos_network
+    ports:
+      - "27019:27017" # Puerto del Secondary 2
+    volumes:
+      - mongodb_data_s2:/data/db
+    command: mongod --replSet rs0 --bind_ip localhost,mongo-secondary-2
+
+  # --- INICIADOR DEL REPLICA SET ---
+  # Este contenedor especial se ejecuta una vez para configurar la replicación
+  mongo-setup:
+    image: mongo:latest
+    container_name: mongo_setup
+    depends_on:
+      - mongo-primary
+      - mongo-secondary-1
+      - mongo-secondary-2
+    networks:
+      - eventos_network
+    volumes:
+      - ./mongo-init.js:/mongo-init.js:ro # Necesitarás crear este archivo
+    command: >
+      bash -c "
+        echo 'Esperando 10s para que los nodos inicien...';
+        sleep 10;
+        echo 'Iniciando configuración de Replica Set...';
+        mongosh --host mongo-primary:27017 < /mongo-init.js;
+      "
+
+  # --- TU BACKEND ---
+  backend:
+    build: ./backend
+    container_name: eventos_backend
+    ports:
+      - "5500:5500"
+    depends_on:
+      - mongo-setup # Depende de que la configuración termine
+    environment:
+      # CORREGIDO: La URI ahora apunta a TODO el conjunto de réplicas
+      - MONGODB_URI=mongodb://mongo-primary:27017,mongo-secondary-1:27017,mongo-secondary-2:27017/eventos_db?replicaSet=rs0
+      - PORT=5500
+    volumes:
+      - ./backend:/app
+      - /app/node_modules
+    networks:
+      - eventos_network
+    command: npm run dev
+
+  # --- TU FRONTEND (Sin cambios) ---
+  frontend:
+    build: ./frontend
+    container_name: eventos_frontend
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    networks:
+      - eventos_network
+    depends_on:
+      - backend
+    environment:
+      - REACT_APP_API_URL=http://localhost:5500/api
+
+volumes:
+  mongodb_data_primary:
+  mongodb_data_s1:
+  mongodb_data_s2:
+
+networks:
+  eventos_network:
+    driver: bridge

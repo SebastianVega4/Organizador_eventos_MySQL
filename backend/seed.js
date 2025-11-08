@@ -2,7 +2,7 @@ const mongoose = require('mongoose');
 const Evento = require('./models/Evento');
 const Asistente = require('./models/Asistente');
 
-mongoose.connect('mongodb://localhost:27017/eventos_db', {
+mongoose.connect('mongodb://mongodb:27017/eventos_db', {
   useNewUrlParser: true,
   useUnifiedTopology: true,
 })
@@ -168,8 +168,8 @@ async function seedDatabase() {
 
     console.log('\n🎉 ¡Base de datos poblada exitosamente!');
     console.log('\nPuedes probar la API en:');
-    console.log('- GET http://localhost:5000/api/eventos');
-    console.log('- GET http://localhost:5000/api/asistentes');
+    console.log(`- GET http://localhost:5500/api/eventos`);
+    console.log(`- GET http://localhost:5500/api/asistentes`);
     
     process.exit(0);
   } catch (error) {
