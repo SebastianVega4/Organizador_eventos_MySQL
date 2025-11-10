@@ -35,7 +35,6 @@ const asistenteSchema = new mongoose.Schema({
   // Información flexible y personalizable
   preferencias: {
     dietarias: [String], // ej: ['Vegetariano', 'Sin gluten']
-    intereses: [String], // ej: ['Música', 'Tecnología']
     accesibilidad: String
   },
   

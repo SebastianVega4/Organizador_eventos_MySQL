@@ -73,14 +73,7 @@ CREATE TABLE preferencias_dietarias (
     INDEX idx_asistente_id (asistente_id)
 );
 
--- Tabla para intereses (RELACIÓN 1:N con asistentes)
-CREATE TABLE intereses (
-    id INT PRIMARY KEY AUTO_INCREMENT,
-    asistente_id INT NOT NULL,
-    interes VARCHAR(100) NOT NULL,
-    FOREIGN KEY (asistente_id) REFERENCES asistentes(id) ON DELETE CASCADE,
-    INDEX idx_asistente_id (asistente_id)
-);
+
 
 -- Tabla para datos adicionales (modelo EAV - Entity Attribute Value)
 CREATE TABLE datos_adicionales (
@@ -156,13 +149,7 @@ INSERT INTO preferencias_dietarias (asistente_id, preferencia) VALUES
 (4, 'Vegetariano'),
 (5, 'Sin mariscos');
 
--- Intereses
-INSERT INTO intereses (asistente_id, interes) VALUES
-(1, 'Tecnología'), (1, 'Inteligencia Artificial'), (1, 'Desarrollo Web'), (1, 'Cloud Computing'),
-(2, 'Música'), (2, 'Conciertos'), (2, 'Rock'), (2, 'Guitarras'),
-(3, 'Deportes'), (3, 'Running'), (3, 'Vida saludable'), (3, 'Yoga'),
-(4, 'Cloud Computing'), (4, 'DevOps'), (4, 'Ciberseguridad'), (4, 'Arquitectura Software'),
-(5, 'Machine Learning'), (5, 'Data Science'), (5, 'Big Data'), (5, 'Analítica');
+
 
 -- Datos adicionales (EAV - demostrando la complejidad)
 INSERT INTO datos_adicionales (asistente_id, clave, valor) VALUES
