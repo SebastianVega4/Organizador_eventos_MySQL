@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { Calendar, Users, Trash2, Plus, X, Ticket, Tag, Edit } from 'lucide-react';
 
 // La variable de entorno que ya corregimos
-const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5500/api';
+const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
 
 export default function EventosApp() {
   const [activeTab, setActiveTab] = useState('eventos');
