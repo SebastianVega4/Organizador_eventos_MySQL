@@ -22,6 +22,13 @@ const dbConfig = {
 
 const pool = mysql.createPool(dbConfig);
 
+// Función para formatear la fecha para MySQL
+const formatDateForMySQL = (dateString) => {
+  if (!dateString) return null;
+  const date = new Date(dateString);
+  return date.toISOString().slice(0, 19).replace('T', ' ');
+};
+
 // Verificar conexión
 pool
   .getConnection()
@@ -157,7 +164,7 @@ app.put("/api/eventos/:id", async (req, res) => {
       [
         nombre,
         descripcion,
-        fecha,
+        formatDateForMySQL(fecha),
         lugar,
         capacidad,
         categoria,
@@ -218,8 +225,8 @@ app.put("/api/eventos/:id", async (req, res) => {
             eventoId,
             promo.codigo,
             promo.descuento,
-            promo.fechaInicio,
-            promo.fechaFin,
+            formatDateForMySQL(promo.fechaInicio),
+            formatDateForMySQL(promo.fechaFin),
             promo.activa || true,
             JSON.stringify(promo.condiciones || {}),
           ]
@@ -356,7 +363,7 @@ app.post("/api/eventos", async (req, res) => {
       [
         nombre,
         descripcion,
-        fecha,
+        formatDateForMySQL(fecha),
         lugar,
         parseInt(capacidad),
         cat,
@@ -417,8 +424,8 @@ app.post("/api/eventos", async (req, res) => {
             eventoId,
             promo.codigo,
             parseFloat(promo.descuento),
-            promo.fechaInicio,
-            promo.fechaFin,
+            formatDateForMySQL(promo.fechaInicio),
+            formatDateForMySQL(promo.fechaFin),
             promoActiva,
             promoCondiciones,
           ]

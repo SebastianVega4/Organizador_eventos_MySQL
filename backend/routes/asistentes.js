@@ -39,14 +39,41 @@ router.post('/', async (req, res) => {
 // PUT - Actualizar asistente
 router.put('/:id', async (req, res) => {
   try {
+    const { id } = req.params;
+    const updateData = { ...req.body };
+
+    // 1. Buscar al asistente
+    const asistente = await Asistente.findById(id);
+    if (!asistente) {
+      return res.status(404).json({ mensaje: 'Asistente no encontrado' });
+    }
+
+    // 2. Manejo especial para 'intereses'
+    if (updateData.preferencias && typeof updateData.preferencias.intereses === 'string') {
+      const nuevosIntereses = updateData.preferencias.intereses
+        .split(',')
+        .map(i => i.trim())
+        .filter(i => i); // Eliminar strings vacíos
+
+      // Combinar con los existentes sin duplicados
+      const interesesActuales = asistente.preferencias.intereses || [];
+      const interesesCombinados = [...new Set([...interesesActuales, ...nuevosIntereses])];
+      
+      // Actualizar el objeto de updateData
+      updateData.preferencias.intereses = interesesCombinados;
+    }
+
+    // 3. Actualizar el asistente con los datos combinados
     const asistenteActualizado = await Asistente.findByIdAndUpdate(
-      req.params.id,
-      req.body,
-      { new: true, runValidators: true }
+      id,
+      { $set: updateData },
+      { new: true, runValidators: true, context: 'query' }
     );
+
     if (!asistenteActualizado) {
       return res.status(404).json({ mensaje: 'Asistente no encontrado' });
     }
+
     res.json(asistenteActualizado);
   } catch (err) {
     res.status(400).json({ mensaje: 'Error al actualizar asistente', error: err.message });
