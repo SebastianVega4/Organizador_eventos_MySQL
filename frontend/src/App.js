@@ -386,7 +386,7 @@ export default function EventosApp() {
             Sistema de Gestión de Eventos - MySQL
           </h1>
           <p className="text-gray-600 mt-2">
-            Comparativa SQL vs NoSQL - Proyecto Final UPTC
+             MySQL - Proyecto Final UPTC
           </p>
         </div>
       </div>
