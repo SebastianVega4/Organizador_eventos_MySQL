@@ -1,15 +1,15 @@
 {
   "name": "eventos-backend-mysql",
   "version": "1.0.0",
-  "description": "Backend para sistema de gestión de eventos con MySQL (Sistema Antiguo)",
+  "description": "Backend para sistema de gestión de eventos con MySQL",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
-    "dev": "nodemon server.js"
+    "dev": "nodemon server.js",
+    "init-db": "mysql -u root -p < init.sql"
   },
   "dependencies": {
     "cors": "^2.8.5",
-    "dotenv": "^16.6.1",
     "express": "^4.21.2",
     "mysql2": "^3.6.5"
   },
@@ -19,8 +19,7 @@
   "keywords": [
     "mysql",
     "eventos",
-    "sistema-antiguo",
-    "problemas-escalabilidad"
+    "crud"
   ],
   "author": "",
   "license": "ISC"
