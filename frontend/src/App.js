@@ -882,6 +882,66 @@ export default function EventosApp() {
                       setFormData({ ...formData, empresa: e.target.value })
                     }
                   />
+
+                  {/* NUEVO: Campo de Intereses */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Intereses (separados por comas)
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="Ej: Tecnología, Música, Deportes"
+                      className="w-full px-3 py-2 border rounded-lg"
+                      value={formData.interesesInput || ""}
+                      onChange={(e) =>
+                        setFormData({
+                          ...formData,
+                          interesesInput: e.target.value,
+                        })
+                      }
+                      onBlur={(e) => {
+                        // Convertir el texto a array cuando el campo pierde el foco
+                        if (e.target.value.trim()) {
+                          const interesesArray = e.target.value
+                            .split(",")
+                            .map((interes) => interes.trim())
+                            .filter((interes) => interes.length > 0);
+
+                          setFormData({
+                            ...formData,
+                            interesesInput: e.target.value,
+                            preferencias: {
+                              ...formData.preferencias,
+                              intereses: interesesArray,
+                            },
+                          });
+                        }
+                      }}
+                    />
+                    <p className="text-xs text-gray-500 mt-1">
+                      Escribe los intereses separados por comas
+                    </p>
+
+                    {/* Mostrar intereses actuales */}
+                    {formData.preferencias?.intereses?.length > 0 && (
+                      <div className="mt-2">
+                        <p className="text-sm font-medium text-gray-700 mb-1">
+                          Intereses actuales:
+                        </p>
+                        <div className="flex flex-wrap gap-1">
+                          {formData.preferencias.intereses.map(
+                            (interes, index) => (
+                              <span
+                                key={index}
+                                className="bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-xs">
+                                {interes}
+                              </span>
+                            )
+                          )}
+                        </div>
+                      </div>
+                    )}
+                  </div>
                 </>
               )}
             </div>
