@@ -253,9 +253,45 @@ export default function EventosApp() {
   
 
       if (modalType === "evento") {
+        if (
+          !formData.nombre ||
+          !formData.descripcion ||
+          !formData.fecha ||
+          !formData.lugar ||
+          !formData.capacidad
+        ) {
+          alert("Por favor completa todos los campos requeridos");
+          return;
+        }
 
-        // ... (sin cambios en la lógica de evento)
-
+        dataToSend = {
+          nombre: formData.nombre,
+          descripcion: formData.descripcion,
+          fecha: formData.fecha,
+          lugar: formData.lugar,
+          capacidad: parseInt(formData.capacidad) || null, // Use null for empty/invalid capacity
+          categoria: formData.categoria || null, // Use null for empty category
+          organizador: {
+            nombre: formData.organizador?.nombre || null,
+            contacto: formData.organizador?.contacto || null,
+            email: formData.organizador?.email || null,
+          },
+          tickets: tickets.map((ticket) => ({
+            tipo: ticket.tipo,
+            precio: parseFloat(ticket.precio) || 0,
+            cantidad: parseInt(ticket.cantidad) || 0,
+            vendidos: parseInt(ticket.vendidos) || 0,
+            caracteristicas: ticket.caracteristicas || {},
+          })),
+          promociones: promociones.map((promo) => ({
+            codigo: promo.codigo,
+            descuento: parseFloat(promo.descuento) || 0,
+            fechaInicio: promo.fechaInicio,
+            fechaFin: promo.fechaFin,
+            activa: promo.activa !== undefined ? promo.activa : true,
+            condiciones: promo.condiciones || {},
+          })),
+        };
       } else {
 
         if (!formData.nombre || !formData.email) {
@@ -267,19 +303,18 @@ export default function EventosApp() {
         }
 
         // Prepara los datos del asistente para el envío
-
-                dataToSend = {
-
-                  ...dataToSend,
-
-                  preferencias: {
-
-                    ...dataToSend.preferencias
-
-                  },
-
-                };
-
+        dataToSend = {
+          nombre: formData.nombre,
+          email: formData.email,
+          telefono: formData.telefono || null,
+          documento: formData.documento || null,
+          empresa: formData.empresa || null,
+          cargo: formData.cargo || null,
+          preferencias: {
+            dietarias: formData.preferencias?.dietarias || [],
+          },
+          datosAdicionales: formData.datosAdicionales || {},
+        };
       }
 
   
@@ -966,15 +1001,481 @@ export default function EventosApp() {
 
               <div className="space-y-4 max-h-[70vh] overflow-y-auto pr-2">
 
-                {modalType === "evento" ? (
+                                {modalType === "evento" ? (
 
-                  <>
+                                  <>
 
-                    {/* ... (sin cambios en el formulario de evento) */}
+                                    <input
 
-                  </>
+                                      type="text"
 
-                ) : (
+                                      placeholder="Nombre del Evento *"
+
+                                      className="w-full px-3 py-2 border rounded-lg"
+
+                                      value={formData.nombre || ""}
+
+                                      onChange={(e) =>
+
+                                        setFormData({ ...formData, nombre: e.target.value })
+
+                                      }
+
+                                    />
+
+                                    <textarea
+
+                                      placeholder="Descripción del Evento *"
+
+                                      className="w-full px-3 py-2 border rounded-lg h-24"
+
+                                      value={formData.descripcion || ""}
+
+                                      onChange={(e) =>
+
+                                        setFormData({ ...formData, descripcion: e.target.value })
+
+                                      }
+
+                                    ></textarea>
+
+                                    <input
+
+                                      type="date"
+
+                                      placeholder="Fecha del Evento *"
+
+                                      className="w-full px-3 py-2 border rounded-lg"
+
+                                      value={formData.fecha || ""}
+
+                                      onChange={(e) =>
+
+                                        setFormData({ ...formData, fecha: e.target.value })
+
+                                      }
+
+                                    />
+
+                                    <input
+
+                                      type="text"
+
+                                      placeholder="Lugar del Evento *"
+
+                                      className="w-full px-3 py-2 border rounded-lg"
+
+                                      value={formData.lugar || ""}
+
+                                      onChange={(e) =>
+
+                                        setFormData({ ...formData, lugar: e.target.value })
+
+                                      }
+
+                                    />
+
+                                    <input
+
+                                      type="number"
+
+                                      placeholder="Capacidad *"
+
+                                      className="w-full px-3 py-2 border rounded-lg"
+
+                                      value={formData.capacidad || ""}
+
+                                      onChange={(e) =>
+
+                                        setFormData({ ...formData, capacidad: e.target.value })
+
+                                      }
+
+                                    />
+
+                                    <input
+
+                                      type="text"
+
+                                      placeholder="Categoría (opcional)"
+
+                                      className="w-full px-3 py-2 border rounded-lg"
+
+                                      value={formData.categoria || ""}
+
+                                      onChange={(e) =>
+
+                                        setFormData({ ...formData, categoria: e.target.value })
+
+                                      }
+
+                                    />
+
+                
+
+                                    <h4 className="text-lg font-semibold mt-4">
+
+                                      Organizador
+
+                                    </h4>
+
+                                    <input
+
+                                      type="text"
+
+                                      placeholder="Nombre del Organizador"
+
+                                      className="w-full px-3 py-2 border rounded-lg"
+
+                                      value={formData.organizador?.nombre || ""}
+
+                                      onChange={(e) =>
+
+                                        setFormData({
+
+                                          ...formData,
+
+                                          organizador: {
+
+                                            ...formData.organizador,
+
+                                            nombre: e.target.value,
+
+                                          },
+
+                                        })
+
+                                      }
+
+                                    />
+
+                                    <input
+
+                                      type="text"
+
+                                      placeholder="Contacto del Organizador"
+
+                                      className="w-full px-3 py-2 border rounded-lg"
+
+                                      value={formData.organizador?.contacto || ""}
+
+                                      onChange={(e) =>
+
+                                        setFormData({
+
+                                          ...formData,
+
+                                          organizador: {
+
+                                            ...formData.organizador,
+
+                                            contacto: e.target.value,
+
+                                          },
+
+                                        })
+
+                                      }
+
+                                    />
+
+                                    <input
+
+                                      type="email"
+
+                                      placeholder="Email del Organizador"
+
+                                      className="w-full px-3 py-2 border rounded-lg"
+
+                                      value={formData.organizador?.email || ""}
+
+                                      onChange={(e) =>
+
+                                        setFormData({
+
+                                          ...formData,
+
+                                          organizador: {
+
+                                            ...formData.organizador,
+
+                                            email: e.target.value,
+
+                                          },
+
+                                        })
+
+                                      }
+
+                                    />
+
+                
+
+                                    <h4 className="text-lg font-semibold mt-4">Tickets</h4>
+
+                                    <div className="space-y-2">
+
+                                      {tickets.map((ticket, index) => (
+
+                                        <div
+
+                                          key={index}
+
+                                          className="flex items-center gap-2 bg-gray-100 p-2 rounded-lg"
+
+                                        >
+
+                                          <Ticket size={16} />
+
+                                          <span>
+
+                                            {ticket.tipo} - ${ticket.precio} ({ticket.cantidad}{" "}
+
+                                            disponibles)
+
+                                          </span>
+
+                                          <button
+
+                                            onClick={() => removeTicket(index)}
+
+                                            className="text-red-600 hover:text-red-800 ml-auto"
+
+                                          >
+
+                                            <X size={16} />
+
+                                          </button>
+
+                                        </div>
+
+                                      ))}
+
+                                    </div>
+
+                                    <div className="flex gap-2">
+
+                                      <input
+
+                                        type="text"
+
+                                        placeholder="Tipo de Ticket"
+
+                                        className="flex-1 px-3 py-2 border rounded-lg"
+
+                                        value={newTicket.tipo}
+
+                                        onChange={(e) =>
+
+                                          setNewTicket({ ...newTicket, tipo: e.target.value })
+
+                                        }
+
+                                      />
+
+                                      <input
+
+                                        type="number"
+
+                                        placeholder="Precio"
+
+                                        className="w-24 px-3 py-2 border rounded-lg"
+
+                                        value={newTicket.precio}
+
+                                        onChange={(e) =>
+
+                                          setNewTicket({ ...newTicket, precio: e.target.value })
+
+                                        }
+
+                                      />
+
+                                      <input
+
+                                        type="number"
+
+                                        placeholder="Cantidad"
+
+                                        className="w-24 px-3 py-2 border rounded-lg"
+
+                                        value={newTicket.cantidad}
+
+                                        onChange={(e) =>
+
+                                          setNewTicket({
+
+                                            ...newTicket,
+
+                                            cantidad: e.target.value,
+
+                                          })
+
+                                        }
+
+                                      />
+
+                                      <button
+
+                                        onClick={addTicket}
+
+                                        className="bg-blue-500 text-white px-3 py-2 rounded-lg hover:bg-blue-600"
+
+                                      >
+
+                                        <Plus size={20} />
+
+                                      </button>
+
+                                    </div>
+
+                
+
+                                    <h4 className="text-lg font-semibold mt-4">Promociones</h4>
+
+                                    <div className="space-y-2">
+
+                                      {promociones.map((promo, index) => (
+
+                                        <div
+
+                                          key={index}
+
+                                          className="flex items-center gap-2 bg-gray-100 p-2 rounded-lg"
+
+                                        >
+
+                                          <Tag size={16} />
+
+                                          <span>
+
+                                            {promo.codigo} - {promo.descuento}% (
+
+                                            {new Date(promo.fechaFin).toLocaleDateString()})
+
+                                          </span>
+
+                                          <button
+
+                                            onClick={() => removePromocion(index)}
+
+                                            className="text-red-600 hover:text-red-800 ml-auto"
+
+                                          >
+
+                                            <X size={16} />
+
+                                          </button>
+
+                                        </div>
+
+                                      ))}
+
+                                    </div>
+
+                                    <div className="flex gap-2 flex-wrap">
+
+                                      <input
+
+                                        type="text"
+
+                                        placeholder="Código"
+
+                                        className="flex-1 px-3 py-2 border rounded-lg"
+
+                                        value={newPromo.codigo}
+
+                                        onChange={(e) =>
+
+                                          setNewPromo({ ...newPromo, codigo: e.target.value })
+
+                                        }
+
+                                      />
+
+                                      <input
+
+                                        type="number"
+
+                                        placeholder="Descuento %"
+
+                                        className="w-24 px-3 py-2 border rounded-lg"
+
+                                        value={newPromo.descuento}
+
+                                        onChange={(e) =>
+
+                                          setNewPromo({
+
+                                            ...newPromo,
+
+                                            descuento: e.target.value,
+
+                                          })
+
+                                        }
+
+                                      />
+
+                                      <input
+
+                                        type="date"
+
+                                        placeholder="Fecha Inicio"
+
+                                        className="flex-1 px-3 py-2 border rounded-lg"
+
+                                        value={newPromo.fechaInicio}
+
+                                        onChange={(e) =>
+
+                                          setNewPromo({
+
+                                            ...newPromo,
+
+                                            fechaInicio: e.target.value,
+
+                                          })
+
+                                        }
+
+                                      />
+
+                                      <input
+
+                                        type="date"
+
+                                        placeholder="Fecha Fin"
+
+                                        className="flex-1 px-3 py-2 border rounded-lg"
+
+                                        value={newPromo.fechaFin}
+
+                                        onChange={(e) =>
+
+                                          setNewPromo({ ...newPromo, fechaFin: e.target.value })
+
+                                        }
+
+                                      />
+
+                                      <button
+
+                                        onClick={addPromocion}
+
+                                        className="bg-blue-500 text-white px-3 py-2 rounded-lg hover:bg-blue-600"
+
+                                      >
+
+                                        <Plus size={20} />
+
+                                      </button>
+
+                                    </div>
+
+                                  </>
+
+                                ) : (
 
                   <>
 
@@ -1032,23 +1533,135 @@ export default function EventosApp() {
 
                     />
 
-                    <input
+                                        <input
 
-                      type="text"
+                                          type="text"
 
-                      placeholder="Empresa (opcional)"
+                                          placeholder="Empresa (opcional)"
 
-                      className="w-full px-3 py-2 border rounded-lg"
+                                          className="w-full px-3 py-2 border rounded-lg"
 
-                      value={formData.empresa || ""}
+                                          value={formData.empresa || ""}
 
-                      onChange={(e) =>
+                                          onChange={(e) =>
 
-                        setFormData({ ...formData, empresa: e.target.value })
+                                            setFormData({ ...formData, empresa: e.target.value })
 
-                      }
+                                          }
 
-                    />
+                                        />
+
+                                        <input
+
+                                          type="text"
+
+                                          placeholder="Documento (opcional)"
+
+                                          className="w-full px-3 py-2 border rounded-lg"
+
+                                          value={formData.documento || ""}
+
+                                          onChange={(e) =>
+
+                                            setFormData({ ...formData, documento: e.target.value })
+
+                                          }
+
+                                        />
+
+                                                            <input
+
+                                                              type="text"
+
+                                                              placeholder="Cargo (opcional)"
+
+                                                              className="w-full px-3 py-2 border rounded-lg"
+
+                                                              value={formData.cargo || ""}
+
+                                                              onChange={(e) =>
+
+                                                                setFormData({ ...formData, cargo: e.target.value })
+
+                                                              }
+
+                                                            />
+
+                                                                                <textarea
+
+                                                                                  placeholder="Preferencias Dietarias (separadas por comas)"
+
+                                                                                  className="w-full px-3 py-2 border rounded-lg h-24"
+
+                                                                                  value={formData.preferencias?.dietarias?.join(", ") || ""}
+
+                                                                                  onChange={(e) =>
+
+                                                                                    setFormData({
+
+                                                                                      ...formData,
+
+                                                                                      preferencias: {
+
+                                                                                        ...formData.preferencias,
+
+                                                                                        dietarias: e.target.value
+
+                                                                                          .split(",")
+
+                                                                                          .map((item) => item.trim()),
+
+                                                                                      },
+
+                                                                                    })
+
+                                                                                  }
+
+                                                                                ></textarea>
+
+                                                                                <textarea
+
+                                                                                  placeholder="Datos Adicionales (JSON opcional)"
+
+                                                                                  className="w-full px-3 py-2 border rounded-lg h-24"
+
+                                                                                  value={
+
+                                                                                    formData.datosAdicionales
+
+                                                                                      ? JSON.stringify(formData.datosAdicionales, null, 2)
+
+                                                                                      : ""
+
+                                                                                  }
+
+                                                                                  onChange={(e) => {
+
+                                                                                    try {
+
+                                                                                      setFormData({
+
+                                                                                        ...formData,
+
+                                                                                        datosAdicionales: e.target.value
+
+                                                                                          ? JSON.parse(e.target.value)
+
+                                                                                          : {},
+
+                                                                                      });
+
+                                                                                    } catch (error) {
+
+                                                                                      console.error("Invalid JSON for Datos Adicionales", error);
+
+                                                                                      // Optionally, provide user feedback about invalid JSON
+
+                                                                                    }
+
+                                                                                  }}
+
+                                                                                ></textarea>
 
   
 
