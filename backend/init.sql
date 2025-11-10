@@ -1,4 +1,3 @@
--- init.sql
 CREATE DATABASE IF NOT EXISTS eventos_db;
 USE eventos_db;
 
@@ -16,31 +15,25 @@ CREATE TABLE eventos (
     organizador_email VARCHAR(255),
     estado ENUM('Programado', 'En curso', 'Finalizado', 'Cancelado') DEFAULT 'Programado',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    INDEX idx_fecha (fecha),
+    INDEX idx_categoria (categoria)
 );
 
--- Tabla de tipos de tickets
+-- Tabla de tipos de tickets (RELACIÓN 1:N con eventos)
 CREATE TABLE tipos_ticket (
     id INT PRIMARY KEY AUTO_INCREMENT,
     evento_id INT NOT NULL,
     tipo VARCHAR(100) NOT NULL,
     precio DECIMAL(10,2) NOT NULL,
     cantidad INT NOT NULL,
+    vendidos INT DEFAULT 0,
     caracteristicas JSON,
     FOREIGN KEY (evento_id) REFERENCES eventos(id) ON DELETE CASCADE,
     INDEX idx_evento_id (evento_id)
 );
 
--- Tabla de tickets vendidos
-CREATE TABLE tickets (
-    id INT PRIMARY KEY AUTO_INCREMENT,
-    tipo_ticket_id INT NOT NULL,
-    vendidos INT DEFAULT 0,
-    FOREIGN KEY (tipo_ticket_id) REFERENCES tipos_ticket(id) ON DELETE CASCADE,
-    INDEX idx_tipo_ticket_id (tipo_ticket_id)
-);
-
--- Tabla de promociones
+-- Tabla de promociones (RELACIÓN 1:N con eventos)
 CREATE TABLE promociones (
     id INT PRIMARY KEY AUTO_INCREMENT,
     evento_id INT NOT NULL,
@@ -71,7 +64,7 @@ CREATE TABLE asistentes (
     INDEX idx_nombre (nombre)
 );
 
--- Tabla para preferencias dietarias
+-- Tabla para preferencias dietarias (RELACIÓN 1:N con asistentes)
 CREATE TABLE preferencias_dietarias (
     id INT PRIMARY KEY AUTO_INCREMENT,
     asistente_id INT NOT NULL,
@@ -80,7 +73,7 @@ CREATE TABLE preferencias_dietarias (
     INDEX idx_asistente_id (asistente_id)
 );
 
--- Tabla para intereses
+-- Tabla para intereses (RELACIÓN 1:N con asistentes)
 CREATE TABLE intereses (
     id INT PRIMARY KEY AUTO_INCREMENT,
     asistente_id INT NOT NULL,
@@ -89,7 +82,7 @@ CREATE TABLE intereses (
     INDEX idx_asistente_id (asistente_id)
 );
 
--- Tabla para datos adicionales (modelo EAV)
+-- Tabla para datos adicionales (modelo EAV - Entity Attribute Value)
 CREATE TABLE datos_adicionales (
     id INT PRIMARY KEY AUTO_INCREMENT,
     asistente_id INT NOT NULL,
@@ -100,7 +93,7 @@ CREATE TABLE datos_adicionales (
     INDEX idx_clave (clave)
 );
 
--- Tabla de asistencias
+-- Tabla de asistencias (TABLA INTERMEDIA M:N entre asistentes y eventos)
 CREATE TABLE asistencias (
     id INT PRIMARY KEY AUTO_INCREMENT,
     asistente_id INT NOT NULL,
@@ -116,32 +109,27 @@ CREATE TABLE asistencias (
     INDEX idx_evento_id (evento_id),
     INDEX idx_fecha_compra (fecha_compra)
 );
-
 -- ============================================================================
 -- DATOS DE PRUEBA PARA DEMOSTRAR LAS LIMITACIONES
 -- ============================================================================
 
--- Eventos de ejemplo
+-- Eventos de ejemplo_generados
 INSERT INTO eventos (nombre, descripcion, fecha, lugar, capacidad, categoria, organizador_nombre, organizador_contacto, organizador_email) VALUES
 ('Tech Conference 2025', 'La conferencia de tecnología más importante del año con speakers internacionales y workshops prácticos.', '2025-06-15 09:00:00', 'Centro de Convenciones Bogotá', 500, 'Conferencia', 'TechEvents Colombia', '3101234567', 'info@techevents.co'),
 ('Concierto de Rock Nacional', 'Una noche inolvidable con las mejores bandas de rock del país en un evento único.', '2025-07-20 20:00:00', 'Movistar Arena', 1000, 'Concierto', 'Music Productions SAS', '3019876543', 'producciones@music.co'),
 ('Maratón Ciudad 2025', 'Carrera atlética anual que recorre los principales puntos de la ciudad, para todas las edades.', '2025-08-10 06:00:00', 'Parque Simón Bolívar', 2000, 'Deportivo', 'Deportes Extremos', '3154445566', 'info@deportesextremos.com');
 
 -- Tickets para los eventos
-INSERT INTO tipos_ticket (evento_id, tipo, precio, cantidad, caracteristicas) VALUES
-(1, 'General', 150000.00, 300, '{"acceso": "General", "beneficios": ["Coffe break", "Material digital"]}'),
-(1, 'VIP', 300000.00, 100, '{"acceso": "VIP", "beneficios": ["Parking", "Catering premium", "Networking session"]}'),
-(1, 'Estudiante', 80000.00, 100, '{"acceso": "General", "requisitos": ["Carnet estudiantil"], "beneficios": ["Coffe break"]}'),
-(2, 'Platea', 120000.00, 400, '{"zona": "Platea", "vista": "Frontal"}'),
-(2, 'Palco', 250000.00, 200, '{"zona": "Palco", "servicios": ["Mesas", "Meseros", "Baño privado"]}'),
-(2, 'General', 80000.00, 400, '{"zona": "General", "acceso": "Pie"}'),
-(3, '5K', 50000.00, 800, '{"distancia": "5km", "incluye": ["Camiseta", "Medalla", "Hidratación"]}'),
-(3, '10K', 70000.00, 700, '{"distancia": "10km", "incluye": ["Camiseta", "Medalla", "Hidratación", "Fruta"]}'),
-(3, 'Media Maratón', 100000.00, 500, '{"distancia": "21km", "incluye": ["Camiseta técnica", "Medalla", "Hidratación", "Alimentación", "Masaje"]}');
-
--- Tickets vendidos
-INSERT INTO tickets (tipo_ticket_id, vendidos) VALUES
-(1, 120), (2, 45), (3, 78), (4, 200), (5, 80), (6, 350), (7, 600), (8, 450), (9, 200);
+INSERT INTO tipos_ticket (evento_id, tipo, precio, cantidad, vendidos, caracteristicas) VALUES
+(1, 'General', 150000.00, 300, 120, '{"acceso": "General", "beneficios": ["Coffe break", "Material digital"]}'),
+(1, 'VIP', 300000.00, 100, 45, '{"acceso": "VIP", "beneficios": ["Parking", "Catering premium", "Networking session"]}'),
+(1, 'Estudiante', 80000.00, 100, 78, '{"acceso": "General", "requisitos": ["Carnet estudiantil"], "beneficios": ["Coffe break"]}'),
+(2, 'Platea', 120000.00, 400, 200, '{"zona": "Platea", "vista": "Frontal"}'),
+(2, 'Palco', 250000.00, 200, 80, '{"zona": "Palco", "servicios": ["Mesas", "Meseros", "Baño privado"]}'),
+(2, 'General', 80000.00, 400, 350, '{"zona": "General", "acceso": "Pie"}'),
+(3, '5K', 50000.00, 800, 600, '{"distancia": "5km", "incluye": ["Camiseta", "Medalla", "Hidratación"]}'),
+(3, '10K', 70000.00, 700, 450, '{"distancia": "10km", "incluye": ["Camiseta", "Medalla", "Hidratación", "Fruta"]}'),
+(3, 'Media Maratón', 100000.00, 500, 200, '{"distancia": "21km", "incluye": ["Camiseta técnica", "Medalla", "Hidratación", "Alimentación", "Masaje"]}');
 
 -- Promociones
 INSERT INTO promociones (evento_id, codigo, descuento, fecha_inicio, fecha_fin, activa, condiciones) VALUES
@@ -205,4 +193,4 @@ INSERT INTO asistencias (asistente_id, evento_id, tipo_ticket_id, precio_final, 
 (5, 1, 2, 240000.00, 'Pendiente');    -- Laura - Tech Conference VIP con descuento (pendiente)
 
 -- Mensaje de confirmación
-SELECT '✅ Base de datos eventos_db creada y poblada con datos de ejemplo' as status;
+SELECT 'Base de datos eventos_db creada y poblada con datos de ejemplo' as status;
