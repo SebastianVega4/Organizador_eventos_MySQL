@@ -133,78 +133,128 @@ export default function EventosApp() {
 
   // Lógica de Creación (Tu 'handleSave' original)
   const handleCreate = async () => {
-    const url = `${API_URL}/eventos`;
+    const url =
+      modalType === "evento" ? `${API_URL}/eventos` : `${API_URL}/asistentes`;
 
-    // Validación más robusta
-    if (
-      !formData.nombre ||
-      !formData.descripcion ||
-      !formData.fecha ||
-      !formData.lugar ||
-      !formData.capacidad
-    ) {
-      alert(
-        "Por favor completa todos los campos requeridos: Nombre, Descripción, Fecha, Lugar y Capacidad"
-      );
-      return;
-    }
-
-    const dataToSend = {
-      nombre: formData.nombre,
-      descripcion: formData.descripcion,
-      fecha: formData.fecha,
-      lugar: formData.lugar,
-      capacidad: parseInt(formData.capacidad) || 0,
-      categoria: formData.categoria || "Otro",
-      organizador: {
-        nombre: formData.organizador?.nombre || "Sin especificar",
-        contacto: formData.organizador?.contacto || "",
-        email: formData.organizador?.email || "",
-      },
-      tickets: tickets.map((ticket) => ({
-        tipo: ticket.tipo,
-        precio: parseFloat(ticket.precio) || 0,
-        cantidad: parseInt(ticket.cantidad) || 0,
-        vendidos: 0, // Siempre 0 para nuevos eventos
-        caracteristicas: ticket.caracteristicas || {},
-      })),
-      promociones: promociones.map((promo) => ({
-        codigo: promo.codigo,
-        descuento: parseFloat(promo.descuento) || 0,
-        fechaInicio: promo.fechaInicio,
-        fechaFin: promo.fechaFin,
-        activa: true, // Siempre activa para nuevas promociones
-        condiciones: promo.condiciones || {},
-      })),
-    };
-
-    console.log("Datos a enviar para crear:", dataToSend);
-
-    try {
-      const res = await fetch(url, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(dataToSend),
-      });
-
-      if (res.ok) {
-        handleCloseModal();
-        fetchEventos();
-        alert("¡Evento creado exitosamente!");
-      } else {
-        const errorData = await res.json();
-        console.error("Error del servidor:", errorData);
+    if (modalType === "evento") {
+      // Validación solo para eventos
+      if (
+        !formData.nombre ||
+        !formData.descripcion ||
+        !formData.fecha ||
+        !formData.lugar ||
+        !formData.capacidad
+      ) {
         alert(
-          `Error: ${
-            errorData.mensaje ||
-            errorData.detalles ||
-            "Ocurrió un error al crear el evento."
-          }`
+          "Por favor completa todos los campos requeridos: Nombre, Descripción, Fecha, Lugar y Capacidad"
         );
+        return;
       }
-    } catch (err) {
-      console.error("Error:", err);
-      alert("Error de red. Revisa la consola para más detalles.");
+
+      const dataToSend = {
+        nombre: formData.nombre,
+        descripcion: formData.descripcion,
+        fecha: formData.fecha,
+        lugar: formData.lugar,
+        capacidad: parseInt(formData.capacidad) || 0,
+        categoria: formData.categoria || "Otro",
+        organizador: {
+          nombre: formData.organizador?.nombre || "Sin especificar",
+          contacto: formData.organizador?.contacto || "",
+          email: formData.organizador?.email || "",
+        },
+        tickets: tickets.map((ticket) => ({
+          tipo: ticket.tipo,
+          precio: parseFloat(ticket.precio) || 0,
+          cantidad: parseInt(ticket.cantidad) || 0,
+          vendidos: 0,
+          caracteristicas: ticket.caracteristicas || {},
+        })),
+        promociones: promociones.map((promo) => ({
+          codigo: promo.codigo,
+          descuento: parseFloat(promo.descuento) || 0,
+          fechaInicio: promo.fechaInicio,
+          fechaFin: promo.fechaFin,
+          activa: true,
+          condiciones: promo.condiciones || {},
+        })),
+      };
+
+      console.log("Datos a enviar para crear evento:", dataToSend);
+
+      try {
+        const res = await fetch(url, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(dataToSend),
+        });
+
+        if (res.ok) {
+          handleCloseModal();
+          fetchEventos();
+          alert("¡Evento creado exitosamente!");
+        } else {
+          const errorData = await res.json();
+          console.error("Error del servidor:", errorData);
+          alert(
+            `Error: ${
+              errorData.mensaje ||
+              errorData.detalles ||
+              "Ocurrió un error al crear el evento."
+            }`
+          );
+        }
+      } catch (err) {
+        console.error("Error:", err);
+        alert("Error de red. Revisa la consola para más detalles.");
+      }
+    } else {
+      // Lógica para ASISTENTES (CORREGIDA)
+      // Validación solo para asistentes
+      if (!formData.nombre || !formData.email) {
+        alert("Por favor completa nombre y email");
+        return;
+      }
+
+      const dataToSend = {
+        nombre: formData.nombre,
+        email: formData.email,
+        telefono: formData.telefono || null,
+        documento: formData.documento || null,
+        empresa: formData.empresa || null,
+        cargo: formData.cargo || null,
+        preferencias: {
+          dietarias: formData.preferencias?.dietarias || [],
+        },
+        datosAdicionales: formData.datosAdicionales || {},
+      };
+
+      console.log("Datos a enviar para crear asistente:", dataToSend);
+
+      try {
+        const res = await fetch(url, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(dataToSend),
+        });
+
+        if (res.ok) {
+          handleCloseModal();
+          fetchAsistentes();
+          alert("¡Asistente creado exitosamente!");
+        } else {
+          const errorData = await res.json();
+          console.error("Error del servidor:", errorData);
+          alert(
+            `Error: ${
+              errorData.mensaje || "Ocurrió un error al crear el asistente."
+            }`
+          );
+        }
+      } catch (err) {
+        console.error("Error:", err);
+        alert("Error de red. Revisa la consola para más detalles.");
+      }
     }
   };
 
@@ -213,61 +263,110 @@ export default function EventosApp() {
   const handleUpdate = async () => {
     if (!currentItem) return;
 
-    const url = `${API_URL}/eventos/${currentItem.id}`;
+    if (modalType === "evento") {
+      // Actualización de EVENTOS
+      const url = `${API_URL}/eventos/${currentItem.id}`;
 
-    // Preparar datos correctamente estructurados
-    const dataToSend = {
-      nombre: formData.nombre || "",
-      descripcion: formData.descripcion || "",
-      fecha: formData.fecha || "",
-      lugar: formData.lugar || "",
-      capacidad: parseInt(formData.capacidad) || 0,
-      categoria: formData.categoria || "Otro",
-      organizador: {
-        nombre: formData.organizador?.nombre || "Sin especificar",
-        contacto: formData.organizador?.contacto || "",
-        email: formData.organizador?.email || "",
-      },
-      tickets: tickets.map((ticket) => ({
-        tipo: ticket.tipo,
-        precio: parseFloat(ticket.precio) || 0,
-        cantidad: parseInt(ticket.cantidad) || 0,
-        vendidos: parseInt(ticket.vendidos) || 0,
-        caracteristicas: ticket.caracteristicas || {},
-      })),
-      promociones: promociones.map((promo) => ({
-        codigo: promo.codigo,
-        descuento: parseFloat(promo.descuento) || 0,
-        fechaInicio: promo.fechaInicio,
-        fechaFin: promo.fechaFin,
-        activa: promo.activa !== undefined ? promo.activa : true,
-        condiciones: promo.condiciones || {},
-      })),
-    };
+      const dataToSend = {
+        nombre: formData.nombre || "",
+        descripcion: formData.descripcion || "",
+        fecha: formData.fecha || "",
+        lugar: formData.lugar || "",
+        capacidad: parseInt(formData.capacidad) || 0,
+        categoria: formData.categoria || "Otro",
+        organizador: {
+          nombre: formData.organizador?.nombre || "Sin especificar",
+          contacto: formData.organizador?.contacto || "",
+          email: formData.organizador?.email || "",
+        },
+        tickets: tickets.map((ticket) => ({
+          tipo: ticket.tipo,
+          precio: parseFloat(ticket.precio) || 0,
+          cantidad: parseInt(ticket.cantidad) || 0,
+          vendidos: parseInt(ticket.vendidos) || 0,
+          caracteristicas: ticket.caracteristicas || {},
+        })),
+        promociones: promociones.map((promo) => ({
+          codigo: promo.codigo,
+          descuento: parseFloat(promo.descuento) || 0,
+          fechaInicio: promo.fechaInicio,
+          fechaFin: promo.fechaFin,
+          activa: promo.activa !== undefined ? promo.activa : true,
+          condiciones: promo.condiciones || {},
+        })),
+      };
 
-    console.log("Datos a enviar en actualización:", dataToSend);
+      console.log("Datos a enviar en actualización de evento:", dataToSend);
 
-    try {
-      const res = await fetch(url, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(dataToSend),
-      });
+      try {
+        const res = await fetch(url, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(dataToSend),
+        });
 
-      if (res.ok) {
-        handleCloseModal();
-        fetchEventos();
-        alert("¡Evento actualizado exitosamente!");
-      } else {
-        const errorData = await res.json();
-        console.error("Error del servidor:", errorData);
-        alert(
-          `Error: ${errorData.mensaje || "Ocurrió un error al actualizar."}`
-        );
+        if (res.ok) {
+          handleCloseModal();
+          fetchEventos();
+          alert("¡Evento actualizado exitosamente!");
+        } else {
+          const errorData = await res.json();
+          console.error("Error del servidor:", errorData);
+          alert(
+            `Error: ${errorData.mensaje || "Ocurrió un error al actualizar."}`
+          );
+        }
+      } catch (err) {
+        console.error("Error:", err);
+        alert("Error de red. Revisa la consola para más detalles.");
       }
-    } catch (err) {
-      console.error("Error:", err);
-      alert("Error de red. Revisa la consola para más detalles.");
+    } else {
+      // Actualización de ASISTENTES
+      const url = `${API_URL}/asistentes/${currentItem.id}`;
+
+      // Validación para asistentes
+      if (!formData.nombre || !formData.email) {
+        alert("Por favor completa nombre y email");
+        return;
+      }
+
+      const dataToSend = {
+        nombre: formData.nombre,
+        email: formData.email,
+        telefono: formData.telefono || null,
+        documento: formData.documento || null,
+        empresa: formData.empresa || null,
+        cargo: formData.cargo || null,
+        preferencias: {
+          dietarias: formData.preferencias?.dietarias || [],
+        },
+        datosAdicionales: formData.datosAdicionales || {},
+      };
+
+      console.log("Datos a enviar en actualización de asistente:", dataToSend);
+
+      try {
+        const res = await fetch(url, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(dataToSend),
+        });
+
+        if (res.ok) {
+          handleCloseModal();
+          fetchAsistentes();
+          alert("¡Asistente actualizado exitosamente!");
+        } else {
+          const errorData = await res.json();
+          console.error("Error del servidor:", errorData);
+          alert(
+            `Error: ${errorData.mensaje || "Ocurrió un error al actualizar."}`
+          );
+        }
+      } catch (err) {
+        console.error("Error:", err);
+        alert("Error de red. Revisa la consola para más detalles.");
+      }
     }
   };
 
