@@ -6,7 +6,11 @@
   "scripts": {
     "start": "node server.js",
     "dev": "nodemon server.js",
-    "init-db": "mysql -u root -p < init.sql"
+    "init-db": "mysql -u root -p < init.sql",
+    "init-db_long": "mysql -u root -p < init_extenso.sql",
+    "Prueba.get": "npx autocannon http://localhost:5000/api/asistentes -c 100 -d 20",
+    "Prueba.post": "npx autocannon http://localhost:5000/api/eventos -m POST -H 'Content-Type: application/json' -i 'evento-body.json'",
+    "Prueba.put": "npx autocannon http://localhost:5000/api/eventos -c 50 -d 20"
   },
   "dependencies": {
     "autocannon": "^8.0.0",

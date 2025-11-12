@@ -135,7 +135,7 @@ INSERT INTO tipos_ticket (evento_id, tipo, precio, cantidad, caracteristicas) VA
 (3, '10K', 70000.00, 700, '{"distancia": "10km", "incluye": ["Camiseta", "Medalla", "Hidratacion", "Fruta"]}'),
 (3, 'Media Maraton', 100000.00, 500, '{"distancia": "21km", "incluye": ["Camiseta tecnica", "Medalla", "Hidratacion", "Alimentacion", "Masaje"]}');
 
--- Datos de tickets vendidos (para la nueva tabla 'tickets')
+-- Datos de tickets vendidos
 INSERT INTO tickets (tipo_ticket_id, vendidos) VALUES
 (1, 120), (2, 45), (3, 78), (4, 200), (5, 80), (6, 350), (7, 600), (8, 450), (9, 200);
 
@@ -175,7 +175,7 @@ INSERT INTO intereses (asistente_id, interes) VALUES
 (4, 'Transformacion Digital'),
 (5, 'Etica en IA');
 
--- Datos adicionales (EAV - demostrando la complejidad)
+-- Datos adicionales 
 INSERT INTO datos_adicionales (asistente_id, clave, valor) VALUES
 (1, 'talla_camiseta', 'M'),
 (1, 'nivel_experiencia', 'Senior'),
@@ -194,14 +194,13 @@ INSERT INTO datos_adicionales (asistente_id, clave, valor) VALUES
 (5, 'herramientas_analitica', 'Python, R, Tableau, Power BI'),
 (5, 'nivel_ingles', 'Avanzado');
 
--- Asistencias a eventos
 INSERT INTO asistencias (asistente_id, evento_id, tipo_ticket_id, precio_final, estado) VALUES
-(1, 1, 2, 240000.00, 'Confirmado'),  -- Maria - Tech Conference VIP con descuento
-(1, 3, 8, 63000.00, 'Confirmado'),    -- Maria - Maraton 10K con descuento
-(2, 2, 4, 102000.00, 'Confirmado'),   -- Carlos - Concierto Platea con descuento
-(3, 3, 7, 45000.00, 'Confirmado'),    -- Ana - Maraton 5K con descuento
-(4, 1, 1, 120000.00, 'Confirmado'),   -- Pedro - Tech Conference General con descuento
-(5, 1, 2, 240000.00, 'Pendiente');    -- Laura - Tech Conference VIP con descuento (pendiente)
+(1, 1, 2, 240000.00, 'Confirmado'),  
+(1, 3, 8, 63000.00, 'Confirmado'),    
+(2, 2, 4, 102000.00, 'Confirmado'),   
+(3, 3, 7, 45000.00, 'Confirmado'),    
+(4, 1, 1, 120000.00, 'Confirmado'),   
+(5, 1, 2, 240000.00, 'Pendiente');  
 
 -- Mensaje de confirmación
-SELECT 'Base de datos eventos_db creada y poblada con datos de ejemplo' as status;
+SELECT 'Base de datos eventos_db creada' as status;

@@ -3,7 +3,7 @@ const router = express.Router();
 
 module.exports = (pool, formatDateForMySQL) => {
 
-// GET - Obtener todos los eventos (CONSULTA COMPLEJA CON MULTIPLES JOINS)
+// GET - Obtener todos los eventos
 router.get("/", async (req, res) => {
   try {
     const connection = await pool.getConnection();
