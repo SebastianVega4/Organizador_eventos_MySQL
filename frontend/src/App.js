@@ -23,6 +23,7 @@ export default function EventosApp() {
   const [formData, setFormData] = useState({});
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [itemToDelete, setItemToDelete] = useState(null);
+  const [notification, setNotification] = useState(null); // Nuevo estado para notificaciones
 
   // 2. Nuevo estado para saber si estamos editando o creando
   const [currentItem, setCurrentItem] = useState(null);
@@ -47,6 +48,18 @@ export default function EventosApp() {
     if (activeTab === "asistentes") fetchAsistentes();
   }, [activeTab]);
 
+  // Función para mostrar notificaciones
+  const showNotification = (message, type) => {
+    setNotification({ message, type });
+    setTimeout(() => {
+      setNotification(null);
+    }, 5000); // La notificación desaparece después de 5 segundos
+  };
+
+  const hideNotification = () => {
+    setNotification(null);
+  };
+
   const fetchEventos = async () => {
     try {
       const res = await fetch(`${API_URL}/eventos`);
@@ -55,7 +68,7 @@ export default function EventosApp() {
       setEventos(data);
     } catch (err) {
       console.error("Error:", err);
-      alert(`Error al obtener eventos: ${err.message}`);
+      showNotification(`Error al obtener eventos: ${err.message}`, "error");
     }
   };
 
@@ -67,14 +80,14 @@ export default function EventosApp() {
       setAsistentes(data);
     } catch (err) {
       console.error("Error:", err);
-      alert(`Error al obtener asistentes: ${err.message}`);
+      showNotification(`Error al obtener asistentes: ${err.message}`, "error");
     }
   };
 
   // --- LÓGICA DE TICKETS Y PROMOCIONES (Sin cambios) ---
   const addTicket = () => {
     if (!newTicket.tipo || !newTicket.precio || !newTicket.cantidad) {
-      alert("Completa todos los campos del ticket");
+      showNotification("Completa todos los campos del ticket", "error");
       return;
     }
     setTickets([
@@ -100,7 +113,7 @@ export default function EventosApp() {
       !newPromo.fechaInicio ||
       !newPromo.fechaFin
     ) {
-      alert("Completa todos los campos de la promoción");
+      showNotification("Completa todos los campos de la promoción", "error");
       return;
     }
     setPromociones([
@@ -145,8 +158,9 @@ export default function EventosApp() {
         !formData.lugar ||
         !formData.capacidad
       ) {
-        alert(
-          "Por favor completa todos los campos requeridos: Nombre, Descripción, Fecha, Lugar y Capacidad"
+        showNotification(
+          "Por favor completa todos los campos requeridos: Nombre, Descripción, Fecha, Lugar y Capacidad",
+          "error"
         );
         return;
       }
@@ -192,27 +206,33 @@ export default function EventosApp() {
         if (res.ok) {
           handleCloseModal();
           fetchEventos();
-          alert("¡Evento creado exitosamente!");
+          showNotification("¡Evento creado exitosamente!", "success");
         } else {
           const errorData = await res.json();
           console.error("Error del servidor:", errorData);
-          alert(
+          showNotification(
             `Error: ${
               errorData.mensaje ||
               errorData.detalles ||
               "Ocurrió un error al crear el evento."
-            }`
+            }`,
+            "error"
           );
         }
       } catch (err) {
         console.error("Error:", err);
-        alert("Error de red. Revisa la consola para más detalles.");
+        showNotification("Error de red. Revisa la consola para más detalles.", "error");
       }
     } else {
-      // Lógica para ASISTENTES (CORREGIDA)
       // Validación solo para asistentes
       if (!formData.nombre || !formData.email) {
-        alert("Por favor completa nombre y email");
+        showNotification("Por favor completa nombre y email", "error");
+        return;
+      }
+      // Validación de formato de email
+      const emailRegex = /^\S+@\S+\.\S+$/;
+      if (!emailRegex.test(formData.email)) {
+        showNotification("Por favor introduce un formato de email válido.", "error");
         return;
       }
 
@@ -242,19 +262,20 @@ export default function EventosApp() {
         if (res.ok) {
           handleCloseModal();
           fetchAsistentes();
-          alert("¡Asistente creado exitosamente!");
+          showNotification("¡Asistente creado exitosamente!", "success");
         } else {
           const errorData = await res.json();
           console.error("Error del servidor:", errorData);
-          alert(
+          showNotification(
             `Error: ${
               errorData.mensaje || "Ocurrió un error al crear el asistente."
-            }`
+            }`,
+            "error"
           );
         }
       } catch (err) {
         console.error("Error:", err);
-        alert("Error de red. Revisa la consola para más detalles.");
+        showNotification("Error de red. Revisa la consola para más detalles.", "error");
       }
     }
   };
@@ -309,17 +330,18 @@ export default function EventosApp() {
         if (res.ok) {
           handleCloseModal();
           fetchEventos();
-          alert("¡Evento actualizado exitosamente!");
+          showNotification("¡Evento actualizado exitosamente!", "success");
         } else {
           const errorData = await res.json();
           console.error("Error del servidor:", errorData);
-          alert(
-            `Error: ${errorData.mensaje || "Ocurrió un error al actualizar."}`
+          showNotification(
+            `Error: ${errorData.mensaje || "Ocurrió un error al actualizar."}`,
+            "error"
           );
         }
       } catch (err) {
         console.error("Error:", err);
-        alert("Error de red. Revisa la consola para más detalles.");
+        showNotification("Error de red. Revisa la consola para más detalles.", "error");
       }
     } else {
       // Actualización de ASISTENTES
@@ -327,7 +349,13 @@ export default function EventosApp() {
 
       // Validación para asistentes
       if (!formData.nombre || !formData.email) {
-        alert("Por favor completa nombre y email");
+        showNotification("Por favor completa nombre y email", "error");
+        return;
+      }
+      // Validación de formato de email
+      const emailRegex = /^\S+@\S+\.\S+$/;
+      if (!emailRegex.test(formData.email)) {
+        showNotification("Por favor introduce un formato de email válido.", "error");
         return;
       }
 
@@ -357,17 +385,18 @@ export default function EventosApp() {
         if (res.ok) {
           handleCloseModal();
           fetchAsistentes();
-          alert("¡Asistente actualizado exitosamente!");
+          showNotification("¡Asistente actualizado exitosamente!", "success");
         } else {
           const errorData = await res.json();
           console.error("Error del servidor:", errorData);
-          alert(
-            `Error: ${errorData.mensaje || "Ocurrió un error al actualizar."}`
+          showNotification(
+            `Error: ${errorData.mensaje || "Ocurrió un error al actualizar."}`,
+            "error"
           );
         }
       } catch (err) {
         console.error("Error:", err);
-        alert("Error de red. Revisa la consola para más detalles.");
+        showNotification("Error de red. Revisa la consola para más detalles.", "error");
       }
     }
   };
@@ -396,16 +425,16 @@ export default function EventosApp() {
       if (res.ok) {
         tipo === "evento" ? fetchEventos() : fetchAsistentes();
 
-        alert("Eliminado exitosamente");
+        showNotification("Eliminado exitosamente", "success");
       } else {
         const errorData = await res.json();
 
-        alert(`Error: ${errorData.mensaje}`);
+        showNotification(`Error: ${errorData.mensaje}`, "error");
       }
     } catch (err) {
       console.error("Error:", err);
 
-      alert("Error de red");
+      showNotification("Error de red", "error");
     } finally {
       setShowDeleteModal(false);
 
@@ -1041,6 +1070,20 @@ export default function EventosApp() {
               </button>
             </div>
           </div>
+        </div>
+      )}
+      {/* Componente de Notificación */}
+      {notification && (
+        <div
+          className={`fixed top-4 right-4 p-4 rounded-lg shadow-lg flex items-center justify-between z-50 ${
+            notification.type === "success"
+              ? "bg-green-500 text-white"
+              : "bg-red-500 text-white"
+          }`}>
+          <span>{notification.message}</span>
+          <button onClick={hideNotification} className="ml-4 font-bold">
+            <X size={20} />
+          </button>
         </div>
       )}
     </div>
