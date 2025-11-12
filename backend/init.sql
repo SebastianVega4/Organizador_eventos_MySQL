@@ -15,7 +15,14 @@ CREATE TABLE eventos (
     organizador_email VARCHAR(255),
     estado ENUM('Programado', 'En curso', 'Finalizado', 'Cancelado') DEFAULT 'Programado',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    -- updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP: Esta columna se rellena
+    --             automaticamente con la marca de tiempo actual tanto al insertar como al actualizar la fila.
+    --             Es util para saber cuando fue la ultima vez que se modifico un registro.
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    -- INDEX idx_fecha (fecha): Un indice es una estructura especial que se crea en una o mas columnas de una tabla.
+    --             Mejora la velocidad de las operaciones de recuperacion de datos en esa(s) columna(s),
+    --             especialmente en consultas que filtran (WHERE) u ordenan (ORDER BY) por esa columna.
+    --             En este caso, acelera las busquedas por 'fecha'.
     INDEX idx_fecha (fecha)
 );
 
@@ -34,6 +41,9 @@ CREATE TABLE tickets (
     id INT PRIMARY KEY AUTO_INCREMENT,
     tipo_ticket_id INT NOT NULL,
     vendidos INT DEFAULT 0,
+    -- ON DELETE CASCADE:Si se elimina una fila de la tabla 'tipos_ticket'
+    --             correspondientes en esta tabla 'tickets' que referencian el 'id' eliminado
+    --             TAMBIEN seran eliminadas automaticamente.
     FOREIGN KEY (tipo_ticket_id) REFERENCES tipos_ticket(id) ON DELETE CASCADE,
     INDEX idx_tipo_ticket_id (tipo_ticket_id)
 );
