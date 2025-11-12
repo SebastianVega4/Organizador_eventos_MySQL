@@ -225,6 +225,7 @@ export default function EventosApp() {
         cargo: formData.cargo || null,
         preferencias: {
           dietarias: formData.preferencias?.dietarias || [],
+          intereses: formData.preferencias?.intereses || [],
         },
         datosAdicionales: formData.datosAdicionales || {},
       };
@@ -339,6 +340,7 @@ export default function EventosApp() {
         cargo: formData.cargo || null,
         preferencias: {
           dietarias: formData.preferencias?.dietarias || [],
+          intereses: formData.preferencias?.intereses || [],
         },
         datosAdicionales: formData.datosAdicionales || {},
       };
@@ -471,6 +473,11 @@ export default function EventosApp() {
           nombre: "",
           contacto: "",
           email: "",
+        },
+        // Para asistentes, inicializamos preferencias
+        preferencias: {
+          dietarias: [],
+          intereses: [],
         },
       });
       setTickets([]);
@@ -677,6 +684,27 @@ export default function EventosApp() {
                           {asistente.empresa}
                         </p>
                       )}
+
+                      {asistente.preferencias?.intereses &&
+                        asistente.preferencias.intereses.length > 0 &&
+                        asistente.preferencias.intereses[0] !== "" && (
+                          <div className="mt-3">
+                            <p className="font-semibold text-gray-700 mb-2">
+                              Intereses:
+                            </p>
+                            <div className="flex gap-2 flex-wrap">
+                              {asistente.preferencias.intereses.map(
+                                (interes, idx) => (
+                                  <span
+                                    key={idx}
+                                    className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm">
+                                    {interes}
+                                  </span>
+                                )
+                              )}
+                            </div>
+                          </div>
+                        )}
                     </div>
 
                     {/* --- 3. Botones de Acción (Editar y Borrar) --- */}
@@ -972,6 +1000,27 @@ export default function EventosApp() {
                     value={formData.empresa || ""}
                     onChange={(e) =>
                       setFormData({ ...formData, empresa: e.target.value })
+                    }
+                  />
+                  <input
+                    type="text"
+                    placeholder="Intereses (separados por comas)"
+                    className="w-full px-3 py-2 border rounded-lg"
+                    value={
+                      formData.preferencias?.intereses
+                        ? formData.preferencias.intereses.join(", ")
+                        : ""
+                    }
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        preferencias: {
+                          ...formData.preferencias,
+                          intereses: e.target.value
+                            .split(",")
+                            .map((i) => i.trim()),
+                        },
+                      })
                     }
                   />
                 </>
