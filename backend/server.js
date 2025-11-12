@@ -243,7 +243,6 @@ app.put("/api/eventos/:id", async (req, res) => {
     );
     const eventoActualizado = eventos[0];
 
-    // Agregar tickets y promociones actualizados
     const [ticketsDb] = await connection.execute(
       `
             SELECT tt.*, t.vendidos 
