@@ -16,7 +16,7 @@ CREATE TABLE eventos (
     estado ENUM('Programado', 'En curso', 'Finalizado', 'Cancelado') DEFAULT 'Programado',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    INDEX idx_fecha (fecha),
+    INDEX idx_fecha (fecha)
 );
 
 -- Tabla de tipos de tickets (RELACION 1:N con eventos)
@@ -26,7 +26,7 @@ CREATE TABLE tipos_ticket (
     tipo VARCHAR(100) NOT NULL,
     precio DECIMAL(10,2) NOT NULL,
     cantidad INT NOT NULL,
-    caracteristicas JSON,
+    caracteristicas JSON
 );
 
 -- Tabla de tickets (RELACION 1:N con tipos_ticket)
@@ -74,7 +74,7 @@ CREATE TABLE preferencias_dietarias (
     id INT PRIMARY KEY AUTO_INCREMENT,
     asistente_id INT NOT NULL,
     preferencia VARCHAR(100) NOT NULL,
-    FOREIGN KEY (asistente_id) REFERENCES asistentes(id) ON DELETE CASCADE,
+    FOREIGN KEY (asistente_id) REFERENCES asistentes(id) ON DELETE CASCADE
 );
 
 -- Tabla para intereses (RELACION 1:N con asistentes)
