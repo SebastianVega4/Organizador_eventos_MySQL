@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from "react";
-// 1. Importar el icono 'Edit'
 import {
   Calendar,
   Users,
@@ -9,9 +8,9 @@ import {
   Ticket,
   Tag,
   Edit,
+  Key, // Nuevo icono para datos adicionales
 } from "lucide-react";
 
-// La variable de entorno que ya corregimos
 const API_URL = process.env.REACT_APP_API_URL || "http://localhost:5000/api";
 
 export default function EventosApp() {
@@ -23,9 +22,8 @@ export default function EventosApp() {
   const [formData, setFormData] = useState({});
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [itemToDelete, setItemToDelete] = useState(null);
-  const [notification, setNotification] = useState(null); // Nuevo estado para notificaciones
+  const [notification, setNotification] = useState(null);
 
-  // 2. Nuevo estado para saber si estamos editando o creando
   const [currentItem, setCurrentItem] = useState(null);
 
   // Estados para tickets y promociones
@@ -43,17 +41,19 @@ export default function EventosApp() {
     fechaFin: "",
   });
 
+  // Estado para datos adicionales del asistente
+  const [datosAdicionales, setDatosAdicionales] = useState([]);
+
   useEffect(() => {
     if (activeTab === "eventos") fetchEventos();
     if (activeTab === "asistentes") fetchAsistentes();
   }, [activeTab]);
 
-  // Función para mostrar notificaciones
   const showNotification = (message, type) => {
     setNotification({ message, type });
     setTimeout(() => {
       setNotification(null);
-    }, 5000); // La notificación desaparece después de 5 segundos
+    }, 5000);
   };
 
   const hideNotification = () => {
@@ -84,7 +84,7 @@ export default function EventosApp() {
     }
   };
 
-  // --- LÓGICA DE TICKETS Y PROMOCIONES (Sin cambios) ---
+  // --- LÓGICA DE TICKETS Y PROMOCIONES ---
   const addTicket = () => {
     if (!newTicket.tipo || !newTicket.precio || !newTicket.cantidad) {
       showNotification("Completa todos los campos del ticket", "error");
@@ -133,9 +133,23 @@ export default function EventosApp() {
     setPromociones(promociones.filter((_, i) => i !== index));
   };
 
-  // --- 4. LÓGICA DE GUARDADO (Refactorizada) ---
+  // --- LÓGICA DE DATOS ADICIONALES ---
+  const handleAddAdicional = () => {
+    setDatosAdicionales([...datosAdicionales, { clave: "", valor: "" }]);
+  };
 
-  // handleSave ahora decide si crear o actualizar
+  const handleRemoveAdicional = (index) => {
+    setDatosAdicionales(datosAdicionales.filter((_, i) => i !== index));
+  };
+
+  const handleChangeAdicional = (index, field, value) => {
+    const updatedDatos = datosAdicionales.map((item, i) =>
+      i === index ? { ...item, [field]: value } : item
+    );
+    setDatosAdicionales(updatedDatos);
+  };
+
+  // --- LÓGICA DE GUARDADO ---
   const handleSave = () => {
     if (currentItem) {
       handleUpdate();
@@ -144,13 +158,11 @@ export default function EventosApp() {
     }
   };
 
-  // Lógica de Creación (Tu 'handleSave' original)
   const handleCreate = async () => {
     const url =
       modalType === "evento" ? `${API_URL}/eventos` : `${API_URL}/asistentes`;
 
     if (modalType === "evento") {
-      // Validación solo para eventos
       if (
         !formData.nombre ||
         !formData.descripcion ||
@@ -159,7 +171,7 @@ export default function EventosApp() {
         !formData.capacidad
       ) {
         showNotification(
-          "Por favor completa todos los campos requeridos: Nombre, Descripción, Fecha, Lugar y Capacidad",
+          "Por favor completa todos los campos requeridos: Nombre, Descripcion, Fecha, Lugar y Capacidad",
           "error"
         );
         return;
@@ -214,27 +226,34 @@ export default function EventosApp() {
             `Error: ${
               errorData.mensaje ||
               errorData.detalles ||
-              "Ocurrió un error al crear el evento."
+              "Ocurrio un error al crear el evento."
             }`,
             "error"
           );
         }
       } catch (err) {
         console.error("Error:", err);
-        showNotification("Error de red. Revisa la consola para más detalles.", "error");
+        showNotification("Error de red. Revisa la consola para mas detalles.", "error");
       }
     } else {
-      // Validación solo para asistentes
+      // Lógica para crear asistente
       if (!formData.nombre || !formData.email) {
         showNotification("Por favor completa nombre y email", "error");
         return;
       }
-      // Validación de formato de email
       const emailRegex = /^\S+@\S+\.\S+$/;
       if (!emailRegex.test(formData.email)) {
-        showNotification("Por favor introduce un formato de email válido.", "error");
+        showNotification("Por favor introduce un formato de email valido.", "error");
         return;
       }
+
+      // Transformar datosAdicionales de array a objeto para el backend
+      const datosAdicionalesObj = datosAdicionales.reduce((acc, item) => {
+        if (item.clave && item.valor) {
+          acc[item.clave] = item.valor;
+        }
+        return acc;
+      }, {});
 
       const dataToSend = {
         nombre: formData.nombre,
@@ -247,7 +266,7 @@ export default function EventosApp() {
           dietarias: formData.preferencias?.dietarias || [],
           intereses: formData.preferencias?.intereses || [],
         },
-        datosAdicionales: formData.datosAdicionales || {},
+        datosAdicionales: datosAdicionalesObj,
       };
 
       console.log("Datos a enviar para crear asistente:", dataToSend);
@@ -268,25 +287,22 @@ export default function EventosApp() {
           console.error("Error del servidor:", errorData);
           showNotification(
             `Error: ${
-              errorData.mensaje || "Ocurrió un error al crear el asistente."
+              errorData.mensaje || "Ocurrio un error al crear el asistente."
             }`,
             "error"
           );
         }
       } catch (err) {
         console.error("Error:", err);
-        showNotification("Error de red. Revisa la consola para más detalles.", "error");
+        showNotification("Error de red. Revisa la consola para mas detalles.", "error");
       }
     }
   };
-
-  // Nueva lógica de Actualización
 
   const handleUpdate = async () => {
     if (!currentItem) return;
 
     if (modalType === "evento") {
-      // Actualización de EVENTOS
       const url = `${API_URL}/eventos/${currentItem.id}`;
 
       const dataToSend = {
@@ -318,7 +334,7 @@ export default function EventosApp() {
         })),
       };
 
-      console.log("Datos a enviar en actualización de evento:", dataToSend);
+      console.log("Datos a enviar en actualizacion de evento:", dataToSend);
 
       try {
         const res = await fetch(url, {
@@ -335,29 +351,35 @@ export default function EventosApp() {
           const errorData = await res.json();
           console.error("Error del servidor:", errorData);
           showNotification(
-            `Error: ${errorData.mensaje || "Ocurrió un error al actualizar."}`,
+            `Error: ${errorData.mensaje || "Ocurrio un error al actualizar."}`,
             "error"
           );
         }
       } catch (err) {
         console.error("Error:", err);
-        showNotification("Error de red. Revisa la consola para más detalles.", "error");
+        showNotification("Error de red. Revisa la consola para mas detalles.", "error");
       }
     } else {
-      // Actualización de ASISTENTES
+      // Lógica para actualizar asistente
       const url = `${API_URL}/asistentes/${currentItem.id}`;
 
-      // Validación para asistentes
       if (!formData.nombre || !formData.email) {
         showNotification("Por favor completa nombre y email", "error");
         return;
       }
-      // Validación de formato de email
       const emailRegex = /^\S+@\S+\.\S+$/;
       if (!emailRegex.test(formData.email)) {
-        showNotification("Por favor introduce un formato de email válido.", "error");
+        showNotification("Por favor introduce un formato de email valido.", "error");
         return;
       }
+
+      // Transformar datosAdicionales de array a objeto para el backend
+      const datosAdicionalesObj = datosAdicionales.reduce((acc, item) => {
+        if (item.clave && item.valor) {
+          acc[item.clave] = item.valor;
+        }
+        return acc;
+      }, {});
 
       const dataToSend = {
         nombre: formData.nombre,
@@ -370,10 +392,10 @@ export default function EventosApp() {
           dietarias: formData.preferencias?.dietarias || [],
           intereses: formData.preferencias?.intereses || [],
         },
-        datosAdicionales: formData.datosAdicionales || {},
+        datosAdicionales: datosAdicionalesObj,
       };
 
-      console.log("Datos a enviar en actualización de asistente:", dataToSend);
+      console.log("Datos a enviar en actualizacion de asistente:", dataToSend);
 
       try {
         const res = await fetch(url, {
@@ -390,22 +412,19 @@ export default function EventosApp() {
           const errorData = await res.json();
           console.error("Error del servidor:", errorData);
           showNotification(
-            `Error: ${errorData.mensaje || "Ocurrió un error al actualizar."}`,
+            `Error: ${errorData.mensaje || "Ocurrio un error al actualizar."}`,
             "error"
           );
         }
       } catch (err) {
         console.error("Error:", err);
-        showNotification("Error de red. Revisa la consola para más detalles.", "error");
+        showNotification("Error de red. Revisa la consola para mas detalles.", "error");
       }
     }
   };
 
-  // --- LÓGICA DE ELIMINACIÓN (Sin cambios) ---
-
   const handleDelete = (id, tipo) => {
     setItemToDelete({ id, tipo });
-
     setShowDeleteModal(true);
   };
 
@@ -424,34 +443,28 @@ export default function EventosApp() {
 
       if (res.ok) {
         tipo === "evento" ? fetchEventos() : fetchAsistentes();
-
         showNotification("Eliminado exitosamente", "success");
       } else {
         const errorData = await res.json();
-
         showNotification(`Error: ${errorData.mensaje}`, "error");
       }
     } catch (err) {
       console.error("Error:", err);
-
       showNotification("Error de red", "error");
     } finally {
       setShowDeleteModal(false);
-
       setItemToDelete(null);
     }
   };
 
-  // --- 3. LÓGICA DEL MODAL (Actualizada) ---
-
   const openModal = (tipo, item = null) => {
     setModalType(tipo);
+    setTickets([]); // Limpiar tickets y promociones al abrir modal
+    setPromociones([]);
+    setDatosAdicionales([]); // Limpiar datos adicionales al abrir modal
 
     if (item) {
-      // Estamos EDITANDO
       setCurrentItem(item);
-
-      // Formatear correctamente los datos del evento
       const formattedItem = {
         ...item,
         fecha: item.fecha
@@ -465,31 +478,35 @@ export default function EventosApp() {
           contacto: "",
           email: "",
         },
+        preferencias: item.preferencias || { dietarias: [], intereses: [] },
       };
 
       setFormData(formattedItem);
 
       if (tipo === "evento") {
-        // Asegurar que tickets y promociones sean arrays
         setTickets(item.tickets || []);
-        setPromociones(item.promociones || []);
-
-        // Formatear fechas de promociones si existen
-        if (item.promociones && item.promociones.length > 0) {
-          const promosFormateadas = item.promociones.map((promo) => ({
-            ...promo,
-            fechaInicio: promo.fecha_inicio
-              ? new Date(promo.fecha_inicio).toISOString().split("T")[0]
-              : "",
-            fechaFin: promo.fecha_fin
-              ? new Date(promo.fecha_fin).toISOString().split("T")[0]
-              : "",
-          }));
-          setPromociones(promosFormateadas);
+        setPromociones(
+          item.promociones
+            ? item.promociones.map((promo) => ({
+                ...promo,
+                fechaInicio: promo.fecha_inicio
+                  ? new Date(promo.fecha_inicio).toISOString().split("T")[0]
+                  : "",
+                fechaFin: promo.fecha_fin
+                  ? new Date(promo.fecha_fin).toISOString().split("T")[0]
+                  : "",
+              }))
+            : []
+        );
+      } else if (tipo === "asistente") {
+        if (item.datosAdicionales) {
+          const transformedDatos = Object.entries(item.datosAdicionales).map(
+            ([clave, valor]) => ({ clave, valor })
+          );
+          setDatosAdicionales(transformedDatos);
         }
       }
     } else {
-      // Estamos CREANDO - Inicializar con estructura correcta
       setCurrentItem(null);
       setFormData({
         nombre: "",
@@ -503,51 +520,37 @@ export default function EventosApp() {
           contacto: "",
           email: "",
         },
-        // Para asistentes, inicializamos preferencias
         preferencias: {
           dietarias: [],
           intereses: [],
         },
       });
-      setTickets([]);
-      setPromociones([]);
     }
-
     setShowModal(true);
   };
 
-  // Nueva función para centralizar el cierre del modal
-
   const handleCloseModal = () => {
     setShowModal(false);
-
     setCurrentItem(null);
-
     setFormData({});
-
     setTickets([]);
-
     setPromociones([]);
+    setDatosAdicionales([]);
   };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
-      {/* --- HEADER (Sin cambios) --- */}
-
       <div className="bg-white shadow-md">
         <div className="max-w-7xl mx-auto px-4 py-6">
           <h1 className="text-3xl font-bold text-gray-800 flex items-center gap-3">
             <Calendar className="text-indigo-600" size={36} />
-            Sistema de Gestión de Eventos - MySQL
+            Sistema de Gestion de Eventos - MySQL
           </h1>
-
           <p className="text-gray-600 mt-2">MySQL - Proyecto Final UPTC</p>
         </div>
       </div>
 
       <div className="max-w-7xl mx-auto px-4 py-6">
-        {/* --- PESTAÑAS (Sin cambios) --- */}
-
         <div className="flex gap-4 mb-6">
           <button
             onClick={() => setActiveTab("eventos")}
@@ -559,7 +562,6 @@ export default function EventosApp() {
             <Calendar size={20} />
             Eventos
           </button>
-
           <button
             onClick={() => setActiveTab("asistentes")}
             className={`flex items-center gap-2 px-6 py-3 rounded-lg font-medium transition ${
@@ -574,13 +576,10 @@ export default function EventosApp() {
 
         {activeTab === "eventos" && (
           <div>
-            {/* --- LISTA DE EVENTOS (Botón de editar agregado) --- */}
-
             <div className="flex justify-between items-center mb-6">
               <h2 className="text-2xl font-bold text-gray-800">
                 Lista de Eventos
               </h2>
-
               <button
                 onClick={() => openModal("evento")}
                 className="flex items-center gap-2 bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition">
@@ -599,21 +598,16 @@ export default function EventosApp() {
                       <h3 className="text-xl font-bold text-gray-800">
                         {evento.nombre}
                       </h3>
-
                       <p className="text-gray-600 mt-1">{evento.descripcion}</p>
-
                       <div className="grid grid-cols-2 gap-4 mt-4">
                         <div className="flex items-center gap-2 text-gray-700">
                           <Calendar size={16} />
-
                           <span>
                             {new Date(evento.fecha).toLocaleDateString()}
                           </span>
                         </div>
-
                         <div className="flex items-center gap-2 text-gray-700">
                           <Users size={16} />
-
                           <span>Capacidad: {evento.capacidad}</span>
                         </div>
                       </div>
@@ -623,7 +617,6 @@ export default function EventosApp() {
                           <p className="font-semibold text-gray-700 mb-2">
                             Tickets:
                           </p>
-
                           <div className="flex gap-2 flex-wrap">
                             {evento.tickets.map((ticket, idx) => (
                               <span
@@ -641,7 +634,6 @@ export default function EventosApp() {
                           <p className="font-semibold text-gray-700 mb-2">
                             Promociones:
                           </p>
-
                           <div className="flex gap-2 flex-wrap">
                             {evento.promociones.map((promo, idx) => (
                               <span
@@ -655,15 +647,12 @@ export default function EventosApp() {
                       )}
                     </div>
 
-                    {/* --- 3. Botones de Acción (Editar y Borrar) --- */}
-
                     <div className="flex">
                       <button
                         onClick={() => openModal("evento", evento)}
                         className="text-blue-600 hover:text-blue-800 p-2">
                         <Edit size={20} />
                       </button>
-
                       <button
                         onClick={() => handleDelete(evento.id, "evento")}
                         className="text-red-600 hover:text-red-800 p-2">
@@ -679,13 +668,10 @@ export default function EventosApp() {
 
         {activeTab === "asistentes" && (
           <div>
-            {/* --- LISTA DE ASISTENTES (Botón de editar agregado) --- */}
-
             <div className="flex justify-between items-center mb-6">
               <h2 className="text-2xl font-bold text-gray-800">
                 Lista de Asistentes
               </h2>
-
               <button
                 onClick={() => openModal("asistente")}
                 className="flex items-center gap-2 bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition">
@@ -704,9 +690,7 @@ export default function EventosApp() {
                       <h3 className="text-xl font-bold text-gray-800">
                         {asistente.nombre}
                       </h3>
-
                       <p className="text-gray-600">{asistente.email}</p>
-
                       {asistente.empresa && (
                         <p className="text-gray-600 mt-2">
                           <span className="font-semibold">Empresa:</span>{" "}
@@ -734,9 +718,27 @@ export default function EventosApp() {
                             </div>
                           </div>
                         )}
-                    </div>
 
-                    {/* --- 3. Botones de Acción (Editar y Borrar) --- */}
+                      {asistente.datosAdicionales &&
+                        Object.keys(asistente.datosAdicionales).length > 0 && (
+                          <div className="mt-3">
+                            <p className="font-semibold text-gray-700 mb-2">
+                              Datos Adicionales:
+                            </p>
+                            <div className="flex gap-2 flex-wrap">
+                              {Object.entries(asistente.datosAdicionales).map(
+                                ([clave, valor], idx) => (
+                                  <span
+                                    key={idx}
+                                    className="bg-yellow-100 text-yellow-800 px-3 py-1 rounded-full text-sm">
+                                    {clave}: {valor}
+                                  </span>
+                                )
+                              )}
+                            </div>
+                          </div>
+                        )}
+                    </div>
 
                     <div className="flex">
                       <button
@@ -744,7 +746,6 @@ export default function EventosApp() {
                         className="text-blue-600 hover:text-blue-800 p-2">
                         <Edit size={20} />
                       </button>
-
                       <button
                         onClick={() => handleDelete(asistente.id, "asistente")}
                         className="text-red-600 hover:text-red-800 p-2">
@@ -759,26 +760,20 @@ export default function EventosApp() {
         )}
       </div>
 
-      {/* --- MODAL DE ELIMINAR (Sin cambios) --- */}
-
       {showDeleteModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
           <div className="bg-white rounded-lg p-6 max-w-sm w-full">
-            <h3 className="text-xl font-bold mb-4">Confirmar Eliminación</h3>
-
-            <p>¿Estás seguro de que quieres eliminar este elemento?</p>
-
+            <h3 className="text-xl font-bold mb-4">Confirmar Eliminacion</h3>
+            <p>¿Estas seguro de que quieres eliminar este elemento?</p>
             <div className="flex gap-3 mt-4">
               <button
                 onClick={confirmDelete}
                 className="flex-1 bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700">
                 Eliminar
               </button>
-
               <button
                 onClick={() => {
                   setShowDeleteModal(false);
-
                   setItemToDelete(null);
                 }}
                 className="flex-1 bg-gray-300 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-400">
@@ -789,13 +784,10 @@ export default function EventosApp() {
         </div>
       )}
 
-      {/* --- 5. MODAL DE CREAR/EDITAR (Campos 'value' agregados) --- */}
-
       {showModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 overflow-y-auto">
           <div className="bg-white rounded-lg p-6 max-w-2xl w-full my-8">
             <h3 className="text-xl font-bold mb-4">
-              {/* El título ahora es dinámico */}
               {currentItem ? "Editar" : "Crear"}{" "}
               {modalType === "evento" ? "Evento" : "Asistente"}
             </h3>
@@ -813,7 +805,7 @@ export default function EventosApp() {
                     }
                   />
                   <textarea
-                    placeholder="Descripción *"
+                    placeholder="Descripcion *"
                     className="w-full px-3 py-2 border rounded-lg"
                     value={formData.descripcion || ""}
                     onChange={(e) =>
@@ -850,7 +842,7 @@ export default function EventosApp() {
                   />
                   <input
                     type="text"
-                    placeholder="Categoría"
+                    placeholder="Categoria"
                     className="w-full px-3 py-2 border rounded-lg"
                     value={formData.categoria || ""}
                     onChange={(e) =>
@@ -942,7 +934,7 @@ export default function EventosApp() {
                     <div className="grid grid-cols-2 gap-2">
                       <input
                         type="text"
-                        placeholder="Código"
+                        placeholder="Codigo"
                         className="px-2 py-1 border rounded"
                         value={newPromo.codigo}
                         onChange={(e) =>
@@ -986,7 +978,7 @@ export default function EventosApp() {
                     <button
                       onClick={addPromocion}
                       className="mt-2 text-sm bg-purple-500 text-white px-3 py-1 rounded hover:bg-purple-600">
-                      Agregar Promoción
+                      Agregar Promocion
                     </button>
                   </div>
                 </>
@@ -1014,7 +1006,7 @@ export default function EventosApp() {
 
                   <input
                     type="tel"
-                    placeholder="Teléfono"
+                    placeholder="Telefono"
                     className="w-full px-3 py-2 border rounded-lg"
                     value={formData.telefono || ""}
                     onChange={(e) =>
@@ -1052,6 +1044,55 @@ export default function EventosApp() {
                       })
                     }
                   />
+
+                  {/* Sección de Datos Adicionales */}
+                  <div className="border-t pt-4">
+                    <h4 className="font-semibold mb-2 flex items-center gap-2">
+                      <Key size={18} /> Datos Adicionales
+                    </h4>
+                    {datosAdicionales.map((item, index) => (
+                      <div
+                        key={index}
+                        className="flex items-center gap-2 mb-2 bg-gray-50 p-2 rounded-lg">
+                        <input
+                          type="text"
+                          placeholder="Clave"
+                          className="w-1/2 px-2 py-1 border rounded"
+                          value={item.clave}
+                          onChange={(e) =>
+                            handleChangeAdicional(
+                              index,
+                              "clave",
+                              e.target.value
+                            )
+                          }
+                        />
+                        <input
+                          type="text"
+                          placeholder="Valor"
+                          className="w-1/2 px-2 py-1 border rounded"
+                          value={item.valor}
+                          onChange={(e) =>
+                            handleChangeAdicional(
+                              index,
+                              "valor",
+                              e.target.value
+                            )
+                          }
+                        />
+                        <button
+                          onClick={() => handleRemoveAdicional(index)}
+                          className="text-red-500 hover:text-red-700">
+                          <X size={16} />
+                        </button>
+                      </div>
+                    ))}
+                    <button
+                      onClick={handleAddAdicional}
+                      className="mt-2 text-sm bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600">
+                      Añadir Campo
+                    </button>
+                  </div>
                 </>
               )}
             </div>
@@ -1072,7 +1113,7 @@ export default function EventosApp() {
           </div>
         </div>
       )}
-      {/* Componente de Notificación */}
+      {/* Componente de Notificacion */}
       {notification && (
         <div
           className={`fixed top-4 right-4 p-4 rounded-lg shadow-lg flex items-center justify-between z-50 ${
