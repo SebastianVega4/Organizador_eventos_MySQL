@@ -9,9 +9,11 @@
     "init-db": "mysql -u root -p < init.sql"
   },
   "dependencies": {
+    "autocannon": "^8.0.0",
     "cors": "^2.8.5",
     "express": "^4.21.2",
-    "mysql2": "^3.6.5"
+    "mysql2": "^3.15.3",
+    "sequelize": "^6.37.7"
   },
   "devDependencies": {
     "nodemon": "^2.0.22"

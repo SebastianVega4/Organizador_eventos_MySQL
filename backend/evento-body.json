@@ -1,0 +1,33 @@
+{
+  "nombre": "Conferencia de Tecnología Futura",
+  "descripcion": "Un evento para explorar las tendencias emergentes.",
+  "fecha": "2025-12-01T10:00:00.000Z",
+  "lugar": "Centro de Convenciones Metropolitano",
+  "capacidad": 500,
+  "categoria": "Tecnología",
+  "organizador": {
+    "nombre": "Tech Corp",
+    "contacto": "555-1234",
+    "email": "contact@techcorp.com"
+  },
+  "tickets": [
+    {
+      "tipo": "General",
+      "precio": 100,
+      "cantidad": 400
+    },
+    {
+      "tipo": "VIP",
+      "precio": 300,
+      "cantidad": 100
+    }
+  ],
+  "promociones": [
+    {
+      "codigo": "EARLYBIRD",
+      "descuento": 0.20,
+      "fecha_fin": "2025-11-15T23:59:59.000Z",
+      "activa": true
+    }
+  ]
+}
